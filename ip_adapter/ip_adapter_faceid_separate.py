@@ -406,9 +406,6 @@ class IPAdapterFaceIDPlus:
 
             if not isinstance(prompt, List):
                 prompt = [prompt] * num_prompts
-            else:
-                faceid_embeds = faceid_embeds.repeat(num_samples, 1, 1)
-                num_samples = 1
 
             if not isinstance(negative_prompt, List):
                 negative_prompt = [negative_prompt] * num_prompts
