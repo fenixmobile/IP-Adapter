@@ -437,6 +437,7 @@ class IPAdapterFaceIDXL(IPAdapterFaceID):
         num_samples=4,
         seed=None,
         num_inference_steps=30,
+        encode_prompt=False,
         **kwargs,
     ):
         self.set_scale(scale)
@@ -448,10 +449,27 @@ class IPAdapterFaceIDXL(IPAdapterFaceID):
         if negative_prompt is None:
             negative_prompt = "monochrome, lowres, bad anatomy, worst quality, low quality"
 
-        if not isinstance(prompt, List):
-            prompt = [prompt] * num_prompts
-        if not isinstance(negative_prompt, List):
-            negative_prompt = [negative_prompt] * num_prompts
+        if encode_prompt:
+            compel = Compel(tokenizer=self.pipe.tokenizer, text_encoder=self.pipe.text_encoder)
+            conditioning = compel.build_conditioning_tensor(prompt)
+            negative_conditioning = compel.build_conditioning_tensor(negative_prompt)
+            [conditioning, negative_conditioning] = compel.pad_conditioning_tensors_to_same_length([conditioning, negative_conditioning])
+            
+            prompt = None
+            negative_prompt = None
+        else:
+            conditioning = None
+            negative_conditioning = None
+
+            if prompt is None:
+                prompt = "best quality, high quality"
+            if negative_prompt is None:
+                negative_prompt = "monochrome, lowres, bad anatomy, worst quality, low quality"
+
+            if not isinstance(prompt, List):
+                prompt = [prompt] * num_prompts
+            if not isinstance(negative_prompt, List):
+                negative_prompt = [negative_prompt] * num_prompts
 
         image_prompt_embeds, uncond_image_prompt_embeds = self.get_image_embeds(faceid_embeds)
 
@@ -472,6 +490,8 @@ class IPAdapterFaceIDXL(IPAdapterFaceID):
                 num_images_per_prompt=num_samples,
                 do_classifier_free_guidance=True,
                 negative_prompt=negative_prompt,
+                prompt_embeds=conditioning,
+                negative_prompt_embeds=negative_conditioning,
             )
             prompt_embeds = torch.cat([prompt_embeds, image_prompt_embeds], dim=1)
             negative_prompt_embeds = torch.cat([negative_prompt_embeds, uncond_image_prompt_embeds], dim=1)
@@ -507,6 +527,7 @@ class IPAdapterFaceIDPlusXL(IPAdapterFaceIDPlus):
         num_inference_steps=30,
         s_scale=1.0,
         shortcut=True,
+        encode_prompt=False,
         **kwargs,
     ):
         self.set_scale(scale)
@@ -518,10 +539,23 @@ class IPAdapterFaceIDPlusXL(IPAdapterFaceIDPlus):
         if negative_prompt is None:
             negative_prompt = "monochrome, lowres, bad anatomy, worst quality, low quality"
 
-        if not isinstance(prompt, List):
-            prompt = [prompt] * num_prompts
-        if not isinstance(negative_prompt, List):
-            negative_prompt = [negative_prompt] * num_prompts
+        if encode_prompt:
+            compel = Compel(tokenizer=self.pipe.tokenizer, text_encoder=self.pipe.text_encoder)
+            conditioning = compel.build_conditioning_tensor(prompt)
+            negative_conditioning = compel.build_conditioning_tensor(negative_prompt)
+            [conditioning, negative_conditioning] = compel.pad_conditioning_tensors_to_same_length([conditioning, negative_conditioning])
+            
+            prompt = None
+            negative_prompt = None
+        else:
+            conditioning = None
+            negative_conditioning = None
+
+            if not isinstance(prompt, List):
+                prompt = [prompt] * num_prompts
+
+            if not isinstance(negative_prompt, List):
+                negative_prompt = [negative_prompt] * num_prompts
 
         image_prompt_embeds, uncond_image_prompt_embeds = self.get_image_embeds(faceid_embeds, face_image, s_scale, shortcut)
 
@@ -542,6 +576,8 @@ class IPAdapterFaceIDPlusXL(IPAdapterFaceIDPlus):
                 num_images_per_prompt=num_samples,
                 do_classifier_free_guidance=True,
                 negative_prompt=negative_prompt,
+                prompt_embeds=conditioning,
+                negative_prompt_embeds=negative_conditioning,
             )
             prompt_embeds = torch.cat([prompt_embeds, image_prompt_embeds], dim=1)
             negative_prompt_embeds = torch.cat([negative_prompt_embeds, uncond_image_prompt_embeds], dim=1)
