@@ -10,6 +10,7 @@ from transformers import CLIPImageProcessor, CLIPVisionModelWithProjection
 
 from .attention_processor_faceid import LoRAAttnProcessor, LoRAIPAttnProcessor
 from .utils import is_torch2_available, get_generator
+from compel import Compel
 
 USE_DAFAULT_ATTN = False # should be True for visualization_attnmap
 if is_torch2_available() and (not USE_DAFAULT_ATTN):
@@ -356,6 +357,8 @@ class IPAdapterFaceIDPlus:
         s_scale=1.0,
         shortcut=False,
         encode_prompt=False,
+        controlnet_image=None,
+        controlnet_conditioning_scale=1.0,
         **kwargs,
     ):
         self.set_scale(scale)
@@ -409,11 +412,13 @@ class IPAdapterFaceIDPlus:
         generator = get_generator(seed, self.device)
 
         images = self.pipe(
+            image=controlnet_image,
             prompt_embeds=prompt_embeds,
             negative_prompt_embeds=negative_prompt_embeds,
             guidance_scale=guidance_scale,
             num_inference_steps=num_inference_steps,
             generator=generator,
+            controlnet_conditioning_scale=controlnet_conditioning_scale,
             **kwargs,
         ).images
 
