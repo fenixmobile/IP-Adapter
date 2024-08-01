@@ -293,6 +293,8 @@ class IPAdapterXL(IPAdapter):
                 num_images_per_prompt=num_samples,
                 do_classifier_free_guidance=True,
                 negative_prompt=negative_prompt,
+                prompt_embeds=conditioning,
+                negative_prompt_embeds=negative_conditioning,
             )
             prompt_embeds = torch.cat([prompt_embeds, image_prompt_embeds], dim=1)
             negative_prompt_embeds = torch.cat([negative_prompt_embeds, uncond_image_prompt_embeds], dim=1)
@@ -440,6 +442,8 @@ class IPAdapterPlusXL(IPAdapter):
                 num_images_per_prompt=num_samples,
                 do_classifier_free_guidance=True,
                 negative_prompt=negative_prompt,
+                prompt_embeds=conditioning,
+                negative_prompt_embeds=negative_conditioning,
             )
             prompt_embeds = torch.cat([prompt_embeds, image_prompt_embeds], dim=1)
             negative_prompt_embeds = torch.cat([negative_prompt_embeds, uncond_image_prompt_embeds], dim=1)
