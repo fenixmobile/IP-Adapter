@@ -211,9 +211,6 @@ class IPAdapterFaceID:
         seed=None,
         guidance_scale=7.5,
         num_inference_steps=30,
-        encode_prompt=False,
-        controlnet_image=None,
-        controlnet_conditioning_scale=1.0,
         **kwargs,
     ):
         self.set_scale(scale)
@@ -225,12 +222,12 @@ class IPAdapterFaceID:
         if negative_prompt is None:
             negative_prompt = "monochrome, lowres, bad anatomy, worst quality, low quality"
 
-        if encode_prompt:
+        if kwargs['encode_prompt'] is not None and kwargs['encode_prompt']:
             compel = Compel(tokenizer=self.pipe.tokenizer, text_encoder=self.pipe.text_encoder)
             conditioning = compel.build_conditioning_tensor(prompt)
             negative_conditioning = compel.build_conditioning_tensor(negative_prompt)
             [conditioning, negative_conditioning] = compel.pad_conditioning_tensors_to_same_length([conditioning, negative_conditioning])
-            
+
             prompt = None
             negative_prompt = None
         else:
@@ -239,18 +236,9 @@ class IPAdapterFaceID:
 
             if not isinstance(prompt, List):
                 prompt = [prompt] * num_prompts
-            else:
-                faceid_embeds = faceid_embeds.repeat(num_samples, 1, 1)
-                num_samples = 1
 
             if not isinstance(negative_prompt, List):
                 negative_prompt = [negative_prompt] * num_prompts
-
-        if controlnet_image is not None:
-            kwargs['image'] = controlnet_image
-
-        if controlnet_conditioning_scale is not None:
-            kwargs['controlnet_conditioning_scale'] = controlnet_conditioning_scale
 
         image_prompt_embeds, uncond_image_prompt_embeds = self.get_image_embeds(faceid_embeds)
 
@@ -388,7 +376,6 @@ class IPAdapterFaceIDPlus:
         num_inference_steps=30,
         s_scale=1.0,
         shortcut=False,
-        encode_prompt=False,
         **kwargs,
     ):
         self.set_scale(scale)
@@ -400,12 +387,12 @@ class IPAdapterFaceIDPlus:
         if negative_prompt is None:
             negative_prompt = "monochrome, lowres, bad anatomy, worst quality, low quality"
 
-        if encode_prompt:
+        if kwargs['encode_prompt'] is not None and kwargs['encode_prompt']:
             compel = Compel(tokenizer=self.pipe.tokenizer, text_encoder=self.pipe.text_encoder)
             conditioning = compel.build_conditioning_tensor(prompt)
             negative_conditioning = compel.build_conditioning_tensor(negative_prompt)
             [conditioning, negative_conditioning] = compel.pad_conditioning_tensors_to_same_length([conditioning, negative_conditioning])
-            
+
             prompt = None
             negative_prompt = None
         else:
@@ -476,14 +463,23 @@ class IPAdapterFaceIDXL(IPAdapterFaceID):
         if negative_prompt is None:
             negative_prompt = "monochrome, lowres, bad anatomy, worst quality, low quality"
 
-        if not isinstance(prompt, List):
-            prompt = [prompt] * num_prompts
-        else:
-            faceid_embeds = faceid_embeds.repeat(num_samples, 1, 1)
-            num_samples = 1
+        if kwargs['encode_prompt'] is not None and kwargs['encode_prompt']:
+            compel = Compel(tokenizer=self.pipe.tokenizer, text_encoder=self.pipe.text_encoder)
+            conditioning = compel.build_conditioning_tensor(prompt)
+            negative_conditioning = compel.build_conditioning_tensor(negative_prompt)
+            [conditioning, negative_conditioning] = compel.pad_conditioning_tensors_to_same_length([conditioning, negative_conditioning])
 
-        if not isinstance(negative_prompt, List):
-            negative_prompt = [negative_prompt] * num_prompts
+            prompt = None
+            negative_prompt = None
+        else:
+            conditioning = None
+            negative_conditioning = None
+
+            if not isinstance(prompt, List):
+                prompt = [prompt] * num_prompts
+
+            if not isinstance(negative_prompt, List):
+                negative_prompt = [negative_prompt] * num_prompts
 
         image_prompt_embeds, uncond_image_prompt_embeds = self.get_image_embeds(faceid_embeds)
 
@@ -551,10 +547,23 @@ class IPAdapterFaceIDPlusXL(IPAdapterFaceIDPlus):
         if negative_prompt is None:
             negative_prompt = "monochrome, lowres, bad anatomy, worst quality, low quality"
 
-        if not isinstance(prompt, List):
-            prompt = [prompt] * num_prompts
-        if not isinstance(negative_prompt, List):
-            negative_prompt = [negative_prompt] * num_prompts
+        if kwargs['encode_prompt'] is not None and kwargs['encode_prompt']:
+            compel = Compel(tokenizer=self.pipe.tokenizer, text_encoder=self.pipe.text_encoder)
+            conditioning = compel.build_conditioning_tensor(prompt)
+            negative_conditioning = compel.build_conditioning_tensor(negative_prompt)
+            [conditioning, negative_conditioning] = compel.pad_conditioning_tensors_to_same_length([conditioning, negative_conditioning])
+
+            prompt = None
+            negative_prompt = None
+        else:
+            conditioning = None
+            negative_conditioning = None
+
+            if not isinstance(prompt, List):
+                prompt = [prompt] * num_prompts
+
+            if not isinstance(negative_prompt, List):
+                negative_prompt = [negative_prompt] * num_prompts
 
         image_prompt_embeds, uncond_image_prompt_embeds = self.get_image_embeds(faceid_embeds, face_image, s_scale, shortcut)
 
