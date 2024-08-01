@@ -212,6 +212,8 @@ class IPAdapterFaceID:
         guidance_scale=7.5,
         num_inference_steps=30,
         encode_prompt=False,
+        controlnet_image=None,
+        controlnet_conditioning_scale=1.0,
         **kwargs,
     ):
         self.set_scale(scale)
@@ -243,6 +245,12 @@ class IPAdapterFaceID:
 
             if not isinstance(negative_prompt, List):
                 negative_prompt = [negative_prompt] * num_prompts
+
+        if controlnet_image is not None:
+            kwargs['image'] = controlnet_image
+
+        if controlnet_conditioning_scale is not None:
+            kwargs['controlnet_conditioning_scale'] = controlnet_conditioning_scale
 
         image_prompt_embeds, uncond_image_prompt_embeds = self.get_image_embeds(faceid_embeds)
 
